@@ -11,10 +11,10 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Login />} />
         <Route
           path="/dashboard"
-          element={user ? <Dashboard /> : <Navigate to="/login" />}
+          element={user ? <Dashboard /> : <Navigate to="/" />}
         />
       </Routes>
     </Router>
