@@ -1,24 +1,56 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "./firebaseConfig";
+import { ref, get } from "firebase/database";
+import { auth, db } from "./firebaseConfig";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      alert("Logged in successfully!");
-      navigate("/dashboard");
-    } catch (err) {
-      setError(err.message);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+  
+      console.log("Logged in as:", user.email);
+  
+      const teachersRef = ref(db, "teachers");
+      const snapshot = await get(teachersRef);
+  
+      if (snapshot.exists()) {
+        const teachers = snapshot.val();
+        console.log("Fetched teachers:", teachers);
+  
+        let teacherId = null;
+  
+        Object.keys(teachers).forEach((key) => {
+          if (teachers[key].email === user.email) {
+            teacherId = key;
+          }
+        });
+  
+        if (teacherId) {
+          console.log("Matched Teacher ID:", teacherId);
+          const teacherData = { id: teacherId, ...teachers[teacherId] };
+          localStorage.setItem("teacherData", JSON.stringify(teacherData));
+  
+          alert(`Welcome, ${teacherData.name}!`);
+          navigate("/dashboard");
+        } else {
+          throw new Error("Access denied. Teacher not found.");
+        }
+      } else {
+        throw new Error("No teacher records found.");
+      }
+    } catch (error) {
+      console.error("Login Error:", error.message);
+      setError(error.message);
     }
-  };
+  };  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
