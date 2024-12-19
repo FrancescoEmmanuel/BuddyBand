@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { ref, get } from "firebase/database";
-import { auth, db } from "./firebaseConfig";
+import { auth, db } from "./config/firebaseConfig";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
@@ -13,42 +13,46 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
+      console.log("EMAIL:", email)
+      console.log("PASS:", password)
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
       const user = userCredential.user;
   
-      console.log("Logged in as:", user.email);
+      // console.log("Logged in as:", user.email);
   
-      const teachersRef = ref(db, "teachers");
-      const snapshot = await get(teachersRef);
+      // const teachersRef = ref(db, "teachers");
+      // const snapshot = await get(teachersRef);
   
-      if (snapshot.exists()) {
-        const teachers = snapshot.val();
-        console.log("Fetched teachers:", teachers);
+      // if (snapshot.exists()) {
+      //   const teachers = snapshot.val();
+      //   console.log("Fetched teachers:", teachers);
   
-        let teacherId = null;
+      //   let teacherId = null;
   
-        Object.keys(teachers).forEach((key) => {
-          if (teachers[key].email === user.email) {
-            teacherId = key;
-          }
-        });
+      //   Object.keys(teachers).forEach((key) => {
+      //     if (teachers[key].email === user.email) {
+      //       teacherId = key;
+      //     }
+      //   });
   
-        if (teacherId) {
-          console.log("Matched Teacher ID:", teacherId);
-          const teacherData = { id: teacherId, ...teachers[teacherId] };
-          localStorage.setItem("teacherData", JSON.stringify(teacherData));
+      //   if (teacherId) {
+      //     console.log("Matched Teacher ID:", teacherId);
+      //     const teacherData = { id: teacherId, ...teachers[teacherId] };
+      //     localStorage.setItem("teacherData", JSON.stringify(teacherData));
   
-          alert(`Welcome, ${teacherData.name}!`);
-          navigate("/dashboard");
-        } else {
-          throw new Error("Access denied. Teacher not found.");
-        }
-      } else {
-        throw new Error("No teacher records found.");
-      }
+      //     alert(`Welcome, ${teacherData.name}!`);
+      //     navigate("/dashboard");
+      //   } else {
+      //     throw new Error("Access denied. Teacher not found.");
+      //   }
+      // } else {
+      //   throw new Error("No teacher records found.");
+      // }
     } catch (error) {
-      console.error("Login Error:", error.message);
+      console.error("Auth error:", error.code, error.message);
       setError(error.message);
+      
     }
   };  
 
